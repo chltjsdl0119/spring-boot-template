@@ -1,7 +1,7 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '4.0.2'
-    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.springframework.boot' version "${SPRING_BOOT_VERSION}"
+    id 'io.spring.dependency-management' version "${SPRING_BOOT_DEPENDENCY_MANAGEMENT_VERSION}"
 }
 
 group = 'com.example'
@@ -10,7 +10,13 @@ description = 'spring-boot-template'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(Integer.parseInt(JAVA_VERSION))
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
     }
 }
 
@@ -20,10 +26,56 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-liquibase'
+
+    // Lombok
+    implementation 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // MySQL Driver
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // QueryDSL
+    implementation "io.github.openfeign.querydsl:querydsl-core:${QUERYDSL_VERSION}"
+    implementation "io.github.openfeign.querydsl:querydsl-jpa:${QUERYDSL_VERSION}"
+    annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${QUERYDSL_VERSION}:jpa"
+
+    // JJWT
+    implementation "io.jsonwebtoken:jjwt-api:${JJWT_VERSION}"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:${JJWT_VERSION}"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson:${JJWT_VERSION}"
+
+    // Swagger
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${SPRINGDOC_OPENAPI_VERSION}"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:${SPRINGDOC_OPENAPI_VERSION}"
+
+    // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+def querydslSrcDir  = layout.buildDirectory.dir("generated/querydsl").get().asFile
+
+tasks.withType(JavaCompile).configureEach {
+    options.getGeneratedSourceOutputDirectory().set(file(querydslSrcDir))
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += querydslSrcDir
+        }
+    }
+}
+
+configurations {
+    querydsl.extendsFrom compileClasspath
 }
