@@ -1,0 +1,71 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  # [Modern Java] Virtual Threads Enable (?? ?? ??)
+  threads:
+    virtual:
+      enabled: true
+
+  # [Lifecycle] Zero Downtime Deployment? ?? ??
+  lifecycle:
+    timeout-per-shutdown-phase: 30s # Graceful shutdown ?? ?? ??
+
+  # [Data Source] ??? ??? ??
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # useSSL=true ?? ? ??? ?? ??
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${MYSQL_DATABASE}?useSSL=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&rewriteBatchedStatements=true
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+
+    hikari:
+      pool-name: loop-on-hikari-prod
+      maximum-pool-size: ${DB_POOL_MAX:20}
+      minimum-idle: ${DB_POOL_MIN:10}
+      # ?? ??? 3?? ?? (?? ?? ??: Fail-Fast)
+      connection-timeout: 3000
+      # DB ??? wait_timeout?? 2~3? ?? ?? (30? ??)
+      max-lifetime: 1800000
+      # ?? ??? ?? ??
+      validation-timeout: 2000
+
+  # [JPA & Hibernate] ?? ???
+  jpa:
+    hibernate:
+      ddl-auto: validate # ??? ?? ??
+    properties:
+      hibernate:
+        format_sql: false
+        highlight_sql: false
+        default_batch_fetch_size: 100 # N+1 ?? ??? ?? ?? ???
+
+  # [Redis] ????? ? ???? ??
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      # ?? ????? ?? ???? ?? ??
+      connect-timeout: 2000
+      timeout: 1000
+
+# [Observability] ???? ? ?? ?? (?? ??)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always # K8s Readiness/Liveness Probe?? ??
+      probes:
+        enabled: true
+
+# [Logging] ??? ?? ?? ????, ?? ???? ??
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: ERROR # SQL? ?? ?? ??? ??
+    com.example.template: INFO

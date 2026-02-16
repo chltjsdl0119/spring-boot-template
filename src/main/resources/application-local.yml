@@ -1,0 +1,56 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  # [Data Source] ??? ???? ???? ?????.
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # Default ?? ???? ???? ??? ?? ?? ???? ??
+    url: jdbc:mysql://localhost:3307/${MYSQL_DATABASE:template_db}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:password}
+
+    hikari:
+      pool-name: loop-on-hikari-local
+      maximum-pool-size: 10 # ??? 10?? ??
+      minimum-idle: 2
+      connection-timeout: 3000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # [JPA & Hibernate]
+  jpa:
+    hibernate:
+      # ?? ?? ??? validate?? update? ???? ???, 
+      # ?????? ?(Flyway/Liquibase)? ??? validate ??.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true # ?? SQL? ??? ?? ??? ??
+        # [Performance] Batch Insert/Update ???
+        jdbc.batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  # [Redis]
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:} # ???? ?? ??? ??? ?? ??
+
+  # [Modern Feature] Virtual Threads ??? (??!)
+  threads:
+    virtual:
+      enabled: true
+
+# [Logging] ??? ???? ?? ??
+logging:
+  level:
+    root: INFO
+    com.example.template: DEBUG
+    # SQL ??? ?????? ?? ??? ?? ???? P6Spy ??
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.springframework.cache: TRACE # Redis ?? ???
